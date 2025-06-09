@@ -1,4 +1,4 @@
-"""@tool-decorated SQL helpers.  Logic comes later."""
+import ast
 from langchain_core.tools import tool
 from langchain_community.utilities.sql_database import SQLDatabase
 from .db import init_memory_engine
@@ -6,8 +6,78 @@ from .db import init_memory_engine
 _engine = init_memory_engine()
 db = SQLDatabase(_engine)
 
+@tool
+def get_albums_by_artist(artist: str):
+    """
+    Get albums by an artist.
+    Returns JSON rows { "Title": ..., "Name": ... }.
+    """
+    return db.run(
+        f"""
+        SELECT Album.Title, Artist.Name 
+        FROM Album 
+        JOIN Artist ON Album.ArtistId = Artist.ArtistId 
+        WHERE Artist.Name LIKE '%{artist}%';
+        """,
+        include_columns=True
+    )
 
 @tool
-def placeholder_tool():
-    """Example stub so graph compiles."""
-    return "ok"
+def get_tracks_by_artist(artist: str):
+    """
+    Get songs/tracks by an artist.
+    """
+    return db.run(
+        f"""
+        SELECT Track.Name as SongName, Artist.Name as ArtistName 
+        FROM Album 
+        LEFT JOIN Artist ON Album.ArtistId = Artist.ArtistId 
+        LEFT JOIN Track ON Track.AlbumId = Album.AlbumId 
+        WHERE Artist.Name LIKE '%{artist}%';
+        """,
+        include_columns=True
+    )
+
+@tool
+def get_songs_by_genre(genre: str):
+    """
+    Fetch songs matching a genre (up to 8).
+    """
+    genre_ids = db.run(
+        f"SELECT GenreId FROM Genre WHERE Name LIKE '%{genre}%'"
+    )
+    if not genre_ids:
+        return f"No songs found for {genre}"
+
+    # parse the result (list of lists)
+    ids = ast.literal_eval(genre_ids)
+    if not ids:
+        return f"No songs found for {genre}"
+
+    joined_ids = ", ".join(str(row[0]) for row in ids)
+    query = f"""
+        SELECT Track.Name as SongName, Artist.Name as ArtistName
+        FROM Track
+        LEFT JOIN Album  ON Track.AlbumId  = Album.AlbumId
+        LEFT JOIN Artist ON Album.ArtistId = Artist.ArtistId
+        WHERE Track.GenreId IN ({joined_ids})
+        GROUP BY Artist.Name
+        LIMIT 8;
+    """
+    songs = db.run(query, include_columns=True)
+    if not songs:
+        return f"No songs found for {genre}"
+    return songs
+
+@tool
+def check_for_songs(song_title: str):
+    """Check if a song exists by partial name."""
+    return db.run(
+        f"SELECT * FROM Track WHERE Name LIKE '%{song_title}%';",
+        include_columns=True
+    )
+
+MUSIC_TOOLS = [get_albums_by_artist,
+               get_tracks_by_artist,
+               get_songs_by_genre,
+               check_for_songs]

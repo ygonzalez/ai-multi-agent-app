@@ -20,5 +20,6 @@ async def chat(req: ChatReq, graph = Depends(get_graph)):
         config={"configurable": {"thread_id": tid}},
     )
     # FastAPI will serialise the dict to JSON automatically
-    return {"response": result["messages"][-1]["content"]}
+    return {"response": result["messages"][-1].content}
+
 
