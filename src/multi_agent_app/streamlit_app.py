@@ -1,5 +1,6 @@
 import streamlit as st
-import requests, os
+import requests
+import os
 import uuid
 
 if "thread_id" not in st.session_state:

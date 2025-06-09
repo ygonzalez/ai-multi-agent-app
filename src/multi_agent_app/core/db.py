@@ -1,7 +1,8 @@
 """Loads the Chinook sample DB into an in-memory SQLite engine."""
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-import sqlite3, requests
+import sqlite3
+import requests
 
 CHINOOK_SQL_URL = (
     "https://raw.githubusercontent.com/lerocha/chinook-database/master/"
