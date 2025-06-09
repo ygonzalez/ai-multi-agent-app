@@ -1,0 +1,30 @@
+# Dockerfile for Streamlit frontend service
+FROM python:3.13-slim
+
+# Prevent Python from writing .pyc files and buffering stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Install poetry
+RUN pip install --upgrade pip \
+    && pip install poetry
+
+WORKDIR /app
+
+# Copy dependency definitions and project metadata for caching
+COPY pyproject.toml poetry.lock README.md ./
+# Copy source code for packaging
+COPY src ./src
+
+# Install dependencies (excluding development dependencies)
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi --without dev
+
+# Copy the full application code
+COPY . .
+
+# Expose the Streamlit default port
+EXPOSE 8501
+
+# Default command: run the Streamlit app
+CMD ["streamlit", "run", "src/multi_agent_app/streamlit_app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
