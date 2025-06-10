@@ -23,6 +23,7 @@ pydantic = "^2.11.5"
 uvicorn = "0.32.1"
 fastapi = "^0.115.12"
 langchain-community = "^0.3.24"
+pydantic-settings = "^2.9.1"
 
 
 [tool.poetry.group.dev.dependencies]
