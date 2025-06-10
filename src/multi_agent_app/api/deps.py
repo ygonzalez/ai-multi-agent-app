@@ -3,8 +3,8 @@ from functools import lru_cache
 from ..core.graph_factory import build_full_graph
 
 @lru_cache
-def _graph_singleton():
-    return build_full_graph()
+def _build(kind: str):
+    return build_full_graph(kind)
 
-def get_graph():
-    return _graph_singleton()
+def get_graph(kind: str = "music"):
+    return _build(kind)

@@ -79,6 +79,6 @@ def create_music_subagent():
 
     short_mem, long_mem = get_mem_components()
 
-    return sg.compile(checkpointer=short_mem,
+    return sg.compile(name="music_information_subagent", checkpointer=short_mem,
         store=long_mem
     )
