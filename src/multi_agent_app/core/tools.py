@@ -77,7 +77,58 @@ def check_for_songs(song_title: str):
         include_columns=True
     )
 
+@tool
+def get_invoices_by_customer_sorted_by_date(customer_id: str):
+    """
+    Return all invoices for a customer, newest first.
+    """
+    return db.run(
+        f"""
+        SELECT *
+        FROM Invoice
+        WHERE CustomerId = {customer_id}
+        ORDER BY InvoiceDate DESC;
+        """,
+        include_columns=True,
+    )
+
+@tool
+def get_invoices_sorted_by_unit_price(customer_id: str):
+    """
+    Same invoices, sorted by highest UnitPrice item first.
+    """
+    q = f"""
+        SELECT Invoice.*, InvoiceLine.UnitPrice
+        FROM Invoice
+        JOIN InvoiceLine ON Invoice.InvoiceId = InvoiceLine.InvoiceId
+        WHERE Invoice.CustomerId = {customer_id}
+        ORDER BY InvoiceLine.UnitPrice DESC;
+    """
+    return db.run(q, include_columns=True)
+
+@tool
+def get_employee_by_invoice_and_customer(invoice_id: str, customer_id: str):
+    """
+    Who helped with a specific invoice?
+    """
+    q = f"""
+        SELECT Employee.FirstName, Employee.Title, Employee.Email
+        FROM Employee
+        JOIN Customer ON Customer.SupportRepId = Employee.EmployeeId
+        JOIN Invoice  ON Invoice.CustomerId     = Customer.CustomerId
+        WHERE Invoice.InvoiceId = {invoice_id}
+          AND Invoice.CustomerId = {customer_id};
+    """
+    info = db.run(q, include_columns=True)
+    return info or f"No employee found for Invoice {invoice_id}"
+
 MUSIC_TOOLS = [get_albums_by_artist,
                get_tracks_by_artist,
                get_songs_by_genre,
                check_for_songs]
+
+INVOICE_TOOLS = [
+    get_invoices_by_customer_sorted_by_date,
+    get_invoices_sorted_by_unit_price,
+    get_employee_by_invoice_and_customer,
+]
