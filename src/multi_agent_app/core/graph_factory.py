@@ -1,14 +1,7 @@
-from .music_subagent import create_music_subagent
-from .invoice_subagent import create_invoice_subagent
-from .supervisor import create_supervisor_agent
+from .supervisor import create_supervisor_graph
 
-
-def build_full_graph(kind: str = "supervisor"):
+def build_full_graph():
     """
-    kind: "music" | "invoice" | "supervisor"
+    Builds the complete multi-agent graph by calling the supervisor creation function.
     """
-    if kind == "invoice":
-        return create_invoice_subagent()
-    if kind == "supervisor":
-        return create_supervisor_agent()
-    return create_music_subagent()
+    return create_supervisor_graph()

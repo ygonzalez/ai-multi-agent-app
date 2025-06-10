@@ -1,10 +1,11 @@
-# from fastapi import Depends
 from functools import lru_cache
+from langchain_core.runnables import Runnable
 from ..core.graph_factory import build_full_graph
 
-@lru_cache
-def _build(kind: str):
-    return build_full_graph(kind)
-
-def get_graph(kind: str = "music"):
-    return _build(kind)
+@lru_cache(maxsize=1)
+def get_graph() -> Runnable:
+    """
+    Get the graph, caching it to ensure it's only built once.
+    """
+    graph = build_full_graph()
+    return graph
